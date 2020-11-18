@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="material-icons">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../../Develope/jars/material-icons.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
