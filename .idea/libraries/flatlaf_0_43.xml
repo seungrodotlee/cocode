@@ -1,7 +1,8 @@
 <component name="libraryTable">
   <library name="flatlaf-0.43">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../../Develope/jars/flatlaf-0.43.jar!/" />
+      <root url="jar://$PROJECT_DIR$/libraries/flatlaf-0.43.jar!/" />
+      <root url="jar://$PROJECT_DIR$/libraries/flatlaf-intellij-themes-0.43.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

@@ -7,9 +7,8 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="rsyntaxtextarea-3.1.1" level="project" />
     <orderEntry type="library" name="flatlaf-0.43" level="project" />
-    <orderEntry type="library" name="flatlaf-intellij-themes-0.43" level="project" />
     <orderEntry type="library" name="material-icons" level="project" />
+    <orderEntry type="library" name="rsyntaxtextarea-3.1.1" level="project" />
   </component>
 </module>
