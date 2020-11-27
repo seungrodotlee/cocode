@@ -1,5 +1,6 @@
 package com.seungro.client.components;
 
+import com.seungro.client.utils.ColorPack;
 import org.fife.ui.rsyntaxtextarea.*;
 import org.fife.ui.rtextarea.Gutter;
 import org.fife.ui.rtextarea.RTextScrollPane;
@@ -27,8 +28,8 @@ public class CodeArea extends RTextScrollPane {
 
         Gutter gutter = RSyntaxUtilities.getGutter(textArea);
 
-        gutter.setBackground(new Color(41, 45, 62));
-        gutter.setForeground(new Color(255, 255, 255));
+        gutter.setBackground(ColorPack.BG);
+        gutter.setForeground(Color.WHITE);
         gutter.setBorderColor(new Color(103, 110, 149));
 
         textArea.addKeyListener(new TypingListener());

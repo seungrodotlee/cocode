@@ -1,6 +1,8 @@
 package com.seungro.client;
 
+import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMaterialPalenightContrastIJTheme;
 import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMaterialPalenightIJTheme;
+import com.seungro.client.utils.ColorPack;
 
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
@@ -28,12 +30,13 @@ public class ClientFrame extends JFrame {
         }
 
         FlatMaterialPalenightIJTheme.install();
-        UIManager.put("*.borderColor", new Color(32, 35, 49));
-        UIManager.put("*.separatorColor", new Color(32, 35, 49));
-        UIManager.put("*.lineSeparatorColor", new Color(32, 35, 49));
-        UIManager.put("TabbedPane.focusColor", new Color(60, 67, 95));
-        UIManager.put("TabbedPane.hoverColor", new Color(60, 67, 95));
-        UIManager.put("TabbedPane.contentAreaColor", new Color(32, 35, 49));
+        UIManager.put("*.borderColor", ColorPack.BG_DARK);
+        UIManager.put("*.separatorColor", ColorPack.BG_DARK);
+        UIManager.put("*.lineSeparatorColor", ColorPack.BG_DARK);
+        UIManager.put("TabbedPane.focusColor", ColorPack.BG_LIGHT);
+        UIManager.put("TabbedPane.hoverColor", ColorPack.BG_LIGHT);
+        UIManager.put("TabbedPane.contentAreaColor", ColorPack.BG_DARK);
+        UIManager.put("SplitPane.background", ColorPack.BG_DARK);
     }
 
     public static void setUIFont(FontUIResource f) {

@@ -11,4 +11,11 @@ public class SidebarIcon extends IconMaterial {
         color(new Color(103, 110, 149));
         size(18);
     }
+
+    public SidebarIcon(String name, Color color) {
+        super(name);
+
+        color(color);
+        size(18);
+    }
 }

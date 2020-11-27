@@ -2,12 +2,14 @@ package com.seungro.client.utils;
 
 import com.seungro.client.components.CodeArea;
 import com.seungro.client.components.IconNode;
+import com.seungro.client.elements.UserButton;
 import com.seungro.data.Unit;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import java.awt.*;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -22,9 +24,10 @@ public class GlobalUtility {
     private String userName;
     private ArrayList<IconNode> nodes = new ArrayList<IconNode>();
     private HashMap<String, CodeArea> codeAreaMap = new HashMap<String, CodeArea>();
-
     private HashMap<UUID, IconNode> folderMap = new HashMap<UUID, IconNode>();
     private HashMap<IconNode, String> tabMap = new HashMap<IconNode, String>();
+    private HashMap<String, User> userMap = new HashMap<String, User>();
+    private User currentEditor = null;
     private Socket socket;
     private JTree tree;
     private IconNode treeRoot;
@@ -75,8 +78,30 @@ public class GlobalUtility {
         return treeRoot;
     }
 
+    public void addUser(User u) {
+        userMap.put(u.getName(), u);
+    }
+
+    public HashMap<String, User> getUserMap() {
+        return userMap;
+    }
+
     public HashMap<IconNode, String> getTabMap() {
         return tabMap;
+    }
+
+    public void setCurrentEditor(String name) {
+        if(currentEditor != null) {
+            UserButton old = currentEditor.getBtn();
+            old.resetCircleColor();
+        }
+
+        currentEditor = userMap.get(name);
+        currentEditor.getBtn().setCircleColor(new Color(33, 255, 85));
+    }
+
+    public User getCurrentEditor() {
+        return currentEditor;
     }
 
     public void attachNode(IconNode node, IconNode parent) {

@@ -1,5 +1,6 @@
 package com.seungro.client;
 
+import com.seungro.client.utils.ColorPack;
 import com.seungro.client.utils.KeyUtil;
 import com.seungro.server.Server;
 
@@ -49,7 +50,7 @@ public class Login extends ClientFrame {
         nameLabel.setHorizontalAlignment(JLabel.LEFT);
         roomLabel.setHorizontalAlignment(JLabel.LEFT);
         errorLabel.setFont(errorLabel.getFont().deriveFont(10f));
-        errorLabel.setForeground(new Color(41, 45, 62));
+        errorLabel.setForeground(ColorPack.BG);
 
         joinRoomBtn.setForeground(Color.WHITE);
         createRoomBtn.setForeground(new Color(149,157,203));
@@ -155,35 +156,35 @@ public class Login extends ClientFrame {
 
                     Thread t = new Thread(r);
                     t.start();
-                }
 
-                try {
-                    String ipReg = "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
-                            "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
-                            "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
-                            "([01]?\\d\\d?|2[0-4]\\d|25[0-5])$";
-                    String ip = null;
-                    System.out.println("Host addr: " + InetAddress.getLocalHost().getHostAddress());  // often returns "127.0.0.1"
-                    Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
+                    try {
+                        String ipReg = "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
+                                "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
+                                "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
+                                "([01]?\\d\\d?|2[0-4]\\d|25[0-5])$";
+                        String ip = null;
+                        System.out.println("Host addr: " + InetAddress.getLocalHost().getHostAddress());  // often returns "127.0.0.1"
+                        Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
 
-                    while (n.hasMoreElements()) {
-                        NetworkInterface net = n.nextElement();
-                        Enumeration<InetAddress> a = net.getInetAddresses();
-                        while (a.hasMoreElements()) {
-                            InetAddress addr = a.nextElement();
-                            String host = addr.getHostAddress();
-                            System.out.println("  " + addr.getHostAddress() + ", pattern match : " + Pattern.matches(ipReg, host));
+                        while (n.hasMoreElements()) {
+                            NetworkInterface net = n.nextElement();
+                            Enumeration<InetAddress> a = net.getInetAddresses();
+                            while (a.hasMoreElements()) {
+                                InetAddress addr = a.nextElement();
+                                String host = addr.getHostAddress();
+                                System.out.println("  " + addr.getHostAddress() + ", pattern match : " + Pattern.matches(ipReg, host));
 
-                            if(Pattern.matches(ipReg, host) && !host.equals("127.0.0.1")) {
-                                System.out.println("ip = " + addr.getHostAddress());
-                                ip = host;
+                                if(Pattern.matches(ipReg, host) && !host.equals("127.0.0.1")) {
+                                    System.out.println("ip = " + addr.getHostAddress());
+                                    ip = host;
+                                }
                             }
                         }
-                    }
 
-                    room = new KeyUtil().encrypt(ip);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+                        room = new KeyUtil().encrypt(ip);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
                 }
 
                 new Client(name, room, me);
