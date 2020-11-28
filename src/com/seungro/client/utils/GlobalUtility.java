@@ -4,6 +4,7 @@ import com.seungro.client.components.CodeArea;
 import com.seungro.client.components.IconNode;
 import com.seungro.client.components.UserButton;
 import com.seungro.client.elements.ChatPanel;
+import com.seungro.client.elements.LogPanel;
 import com.seungro.client.elements.UserListPanel;
 import com.seungro.data.Unit;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -20,26 +21,25 @@ import java.util.*;
 public class GlobalUtility {
     private static GlobalUtility instance = new GlobalUtility();
 
-    private ArrayList<IconNode> nodes = new ArrayList<IconNode>();
-    private HashMap<String, CodeArea> codeAreaMap = new HashMap<String, CodeArea>();
-    private HashMap<UUID, IconNode> folderMap = new HashMap<UUID, IconNode>();
-    private HashMap<IconNode, String> tabMap = new HashMap<IconNode, String>();
-    private HashMap<String, User> userMap = new HashMap<String, User>();
-
     private JTabbedPane mainTabPane;
+    private LogPanel logPane;
     private ChatPanel chatPane;
     private UserListPanel userListPanel;
     private JTree tree;
     private IconNode treeRoot;
     private User currentEditor = null;
     private Socket socket;
+    private Boolean auth = false;
     private String userName;
     private String[] fe = {
             "java", "javascript", "html", "css", "c", "cpp", "json", "jsp", "php", "xml"
     };
-    ArrayList<String> fileExts = new ArrayList<>(Arrays.asList(fe));
 
-    private GlobalUtility() {}
+    private ArrayList<String> fileExts = new ArrayList<>(Arrays.asList(fe));
+    private HashMap<String, CodeArea> codeAreaMap = new HashMap<String, CodeArea>();
+    private HashMap<UUID, IconNode> folderMap = new HashMap<UUID, IconNode>();
+    private HashMap<IconNode, String> tabMap = new HashMap<IconNode, String>();
+    private HashMap<String, User> userMap = new HashMap<String, User>();
 
     public static GlobalUtility getInstance() {
         return instance;
@@ -51,6 +51,14 @@ public class GlobalUtility {
 
     public JTabbedPane getMainTabPane() {
         return mainTabPane;
+    }
+
+    public LogPanel getLogPane() {
+        return logPane;
+    }
+
+    public void setLogPane(LogPanel logPane) {
+        this.logPane = logPane;
     }
 
     public ChatPanel getChatPane() {
@@ -69,22 +77,6 @@ public class GlobalUtility {
         this.userListPanel = userListPanel;
     }
 
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public Socket getSocket() {
-        return socket;
-    }
-
-    public void setSocket(Socket socket) {
-        this.socket = socket;
-    }
-
     public void setTree(JTree tree) {
         this.tree = tree;
         treeRoot = (IconNode) tree.getModel().getRoot();
@@ -99,6 +91,26 @@ public class GlobalUtility {
         userMap.put(u.getName(), u);
     }
 
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public void setAuth(Boolean auth) {
+        this.auth = auth;
+    }
+
+    public Boolean amIAuth() {
+        return auth;
+    }
+
+    public void setSocket(Socket socket) {
+        this.socket = socket;
+    }
+
     public HashMap<String, User> getUserMap() {
         return userMap;
     }
@@ -107,14 +119,31 @@ public class GlobalUtility {
         return tabMap;
     }
 
+    public void resetUserStatus(String name) {
+        UserButton b = userMap.get(name).getBtn();
+        b.resetCircleColor();
+        b.setRequester(false);
+    }
+
+    public void setRequester(String name) {
+        UserButton b = userMap.get(name).getBtn();
+        b.setCircleColor(ColorPack.RED_ORANGE);
+        b.setRequester(true);
+    }
+
     public void setCurrentEditor(String name) {
         if(currentEditor != null) {
             UserButton old = currentEditor.getBtn();
             old.resetCircleColor();
         }
 
+        if(name == null) {
+            currentEditor = null;
+            return;
+        }
+
         currentEditor = userMap.get(name);
-        currentEditor.getBtn().setCircleColor(new Color(33, 255, 85));
+        currentEditor.getBtn().setCircleColor(ColorPack.GREEN);
     }
 
     public User getCurrentEditor() {
@@ -298,15 +327,6 @@ public class GlobalUtility {
         return treeRoot;
     }
 
-    public void sendMessage(Unit u) {
-        try {
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-            out.writeObject(u);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     public void newFileData(String key, String val) {
         CodeArea textArea = new CodeArea();
         textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
@@ -315,10 +335,6 @@ public class GlobalUtility {
 
         mainTabPane.add(key, textArea);
         textArea.setText(val);
-    }
-
-    public void editFileData(IconNode node, String key, String val) {
-        codeAreaMap.get(key).setText(val);
     }
 
     public void updateFileName(IconNode node, String old, String newKey) {
@@ -412,6 +428,15 @@ public class GlobalUtility {
     public void setCurrentFile(String key) {
         System.out.println("req key = " + key);
         mainTabPane.setSelectedComponent(codeAreaMap.get(key));
+    }
+
+    public void sendMessage(Unit u) {
+        try {
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            out.writeObject(u);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     class NodeWrapper {

@@ -14,14 +14,12 @@ public class ServerThread extends Thread {
     private ObjectInputStream input;
     private ObjectOutputStream output;
     private String id;
-    private String auth;
     private ClientData me;
     private int type;
 
-    public ServerThread(Socket socket, ArrayList<ClientData> members, String auth) {
+    public ServerThread(Socket socket, ArrayList<ClientData> members) {
         this.socket = socket;
         this.members = members;
-        this.auth = auth;
     }
 
     public void run() {
@@ -36,9 +34,8 @@ public class ServerThread extends Thread {
                 type = u.getType();
                 id = u.getUserName();
 
-                me = new ClientData(id, socket);
-
                 if(type == Unit.ENTER_DATA) {
+                    me = new ClientData(id, socket);
                     String value = (String) u.getValue();
                     String[] receive = value.split("/");
                     String roomKey = value.replace(receive[0] + "/", "");
@@ -75,6 +72,17 @@ public class ServerThread extends Thread {
                             broadcast(new Unit(Unit.LOG_DATA, me.getName(), "join", mems));
                         }
                     }
+                } else if(type == Unit.LOG_DATA) {
+                    String logType = u.getTitle();
+
+                    if(logType.equals("request_share")) {
+                        broadcast(u);
+                    }
+
+                    if(logType.equals("accept_share") || logType.equals("finish_share")) {
+                        broadcast(u);
+                        receive(u);
+                    }
                 } else {
                     broadcast(u);
                 }
@@ -107,12 +115,25 @@ public class ServerThread extends Thread {
         }
     }
 
-    private void broadcast(Unit u) {
+    private synchronized void whisper(String user, Unit u) {
+        try {
+            for(ClientData member : members) {
+                if(member.getName().equals(user)) {
+                    System.out.println("[SERVER] whisper to " + user);
+                    output = new ObjectOutputStream(member.getSocket().getOutputStream());
+                    output.writeObject(u);
+                    output.flush();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private synchronized void broadcast(Unit u) {
         try {
             for (ClientData member : members) {
-                System.out.println("[SERVER] broadcast to " + member.getName());
                 if (member.getSocket().equals(me.getSocket())) {
-                    System.out.println("[SERVER] it's me");
                     continue;
                 }
 

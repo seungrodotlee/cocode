@@ -1,7 +1,6 @@
 package com.seungro.client;
 
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicSplitPaneDivider;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -9,7 +8,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -32,91 +32,100 @@ public class Client extends ClientFrame {
     Future<?> future;
     Boolean sharing = false;
 
+    private User me;
     private Socket socket;
     private ObjectOutputStream output;
     private ObjectInputStream input;
     private Boolean connected = false;
 
-    private JLayeredPane layeredPane;
     private JPanel mainPane;
     private JSplitPane editorPane;
     private JSplitPane centerPane;
     private JSplitPane wholePane;
     private JTabbedPane mainTab;
+    private JPanel tabWrap;
+    private ChatLogPanel chatLogPanel;
+    private JPanel rightPanel;
+    private JPanel listWrap;
+    private UserListPanel listPanel;
     private Sidebar side;
-    private JPanel bottomBar;
+    private JPanel buttonWrap;
     private JButton shareButton;
-    private String name = null;
+
+    private String name;
+    private String room;
+    private Login login;
 
     public Client(String name, String room, Login login) {
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setPreferredSize(new Dimension((int) screenSize.getWidth(), (int) screenSize.getHeight()));
+        this.name = name;
+        this.room = room;
+        this.login = login;
 
         global = GlobalUtility.getInstance();
         global.setUserName(name);
 
-        System.out.println("client on");
-
-        JPanel welcomePanel = new JPanel();
-        JPanel tabWrap = new JPanel();
-        welcomePanel.add(new JLabel("welcome"));
-
-        mainPane = new JPanel(new BorderLayout());
-
-        mainTab = new JTabbedPane();
-        tabWrap.add(mainTab);
-        tabWrap.setBackground(ColorPack.BG);
-        global.setMainTabPane(mainTab);
-
         side = new Sidebar();
-
-        ChatLogPanel chatLogPanel = new ChatLogPanel();
-        JPanel listWrap = new JPanel();
-        UserListPanel listPanel = new UserListPanel();
-
-        global.setUserListPanel(listPanel);
-
-//        listPanel.addUser(new User("이승로"));
-//        listPanel.addUser(new User("김승로"));
-//        listPanel.addUser(new User("박승로"));
-
-        listWrap.setLayout(new BorderLayout());
-        listWrap.add(listPanel, BorderLayout.PAGE_START);
-
-        //GlobalUtility.getInstance().setCurrentEditor("박승로");
-
+        mainPane = new JPanel(new BorderLayout());
+        tabWrap = new JPanel();
+        mainTab = new JTabbedPane();
+        chatLogPanel = new ChatLogPanel();
+        rightPanel = new JPanel();
+        listWrap = new JPanel();
+        listPanel = new UserListPanel();
         editorPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, side, tabWrap);
         centerPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, editorPane, chatLogPanel);
-        wholePane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, centerPane, listWrap);
+        wholePane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, centerPane, rightPanel);
+        buttonWrap = new JPanel();
+        shareButton = new JButton("공유");
+
+        global.setMainTabPane(mainTab);
+        global.setUserListPanel(listPanel);
+        buttonWrap.setLayout(new BorderLayout());
+        buttonWrap.add(shareButton, BorderLayout.CENTER);
+        buttonWrap.setBorder(BorderFactory.createMatteBorder(0, 0, 5, 0, ColorPack.BG_DARK));
+        buttonWrap.setPreferredSize(new Dimension(1, 36));
+        tabWrap.setLayout(new BorderLayout());
+        tabWrap.add(mainTab, BorderLayout.CENTER);
+        tabWrap.setBackground(ColorPack.BG);
+        listWrap.setLayout(new BorderLayout());
+        listWrap.add(listPanel, BorderLayout.PAGE_START);
+        rightPanel.setLayout(new BorderLayout());
+        rightPanel.add(buttonWrap, BorderLayout.PAGE_START);
+        rightPanel.add(listWrap, BorderLayout.CENTER);
         centerPane.setResizeWeight(1);
         centerPane.setDividerSize(5);
         wholePane.setDividerSize(5);
         wholePane.setResizeWeight(1);
-
-        BasicSplitPaneDivider divider = (BasicSplitPaneDivider) wholePane.getComponent(2);
-        divider.setBackground(ColorPack.BG_DARK);
-        //divider.setBorder(null);
-
-        bottomBar = new JPanel(new FlowLayout());
-        shareButton = new JButton("공유");
+        shareButton.setBackground(ColorPack.FADED_GREEN);
+        shareButton.setForeground(Color.WHITE);
+        shareButton.setBorder(null);
         shareButton.addMouseListener(new ShareBtnListener());
-        bottomBar.add(shareButton);
-        bottomBar.setBorder(BorderFactory.createMatteBorder(5, 0, 0, 0, ColorPack.BG_DARK));
-
         mainPane.add(wholePane);
-        mainPane.add(bottomBar, BorderLayout.PAGE_END);
 
+        setPreferredSize(Toolkit.getDefaultToolkit().getScreenSize());
         setContentPane(mainPane);
         setTitle("Text Editor Demo");
         ready();
         setVisible(true);
+        revalidate();
+        repaint();
+        connectToServer();
 
-        centerPane.setDividerLocation(centerPane.getWidth() - 320);
+        TimerTask r = new TimerTask() {
+            @Override
+            public void run() {
+                centerPane.setDividerLocation(centerPane.getWidth() - 320);
+            }
+        };
 
+        Timer t = new Timer();
+        t.schedule(r, 100);
+    }
+
+    private void connectToServer() {
         try {
-            User me = new User(name);
-            KeyUtil keyUtil = new KeyUtil();
-            String ip = keyUtil.decrypt(room);
+            me = new User(name);
+            String ip = KeyUtil.decrypt(room);
             System.out.println("room ip = " + ip);
 
             socket = new Socket(ip, 10001);
@@ -143,6 +152,7 @@ public class Client extends ClientFrame {
                     UserListPanel userListPanel = global.getUserListPanel();
 
                     if(login.getRoomType().equals("new")) {
+                        global.setAuth(true);
                         me.setAuth(true);
                         userListPanel.addUser(me);
                     } else {
@@ -150,21 +160,19 @@ public class Client extends ClientFrame {
 
                         System.out.println("auth = " + receive.getUserName());
                         for(String member : members) {
-                                User u = new User(member);
-                                if(member.equals(receive.getUserName())) {
-                                    u.setAuth(true);
-                                }
-                                userListPanel.addUser(u);
-                                userListPanel.revalidate();
+                            User u = new User(member);
+                            if(member.equals(receive.getUserName())) {
+                                u.setAuth(true);
+                            }
+                            userListPanel.addUser(u);
+                            userListPanel.revalidate();
                         }
                     }
-
-
 
                     login.dispose();
                     System.out.println(log);
 
-                    ClientThread thread = new ClientThread(socket, input);
+                    ClientThread thread = new ClientThread(this, socket, input);
                     thread.start();
                 }
             }
@@ -177,12 +185,56 @@ public class Client extends ClientFrame {
         }
     }
 
+    public void share() {
+        Runnable share = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String value = ((RTextScrollPane) mainTab.getSelectedComponent()).getTextArea().getText();
+
+                    Unit u = new Unit(Unit.FILE_DATA, me.getName(), mainTab.getTitleAt(mainTab.getSelectedIndex()), value);
+
+                    output = new ObjectOutputStream(socket.getOutputStream());
+                    output.writeObject(u);
+                    output.flush();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        future = service.scheduleAtFixedRate(share, 0, 300, TimeUnit.MILLISECONDS);
+        global.setCurrentEditor(me.getName());
+        shareButton.setText("공유 종료");
+        shareButton.setBackground(ColorPack.RED_ORANGE);
+        sharing = !sharing;
+    }
+
+    public void stop() {
+        future.cancel(true);
+
+        Unit u = new Unit(Unit.LOG_DATA, me.getName(), "finish_share", null);
+
+        try {
+            output = new ObjectOutputStream(socket.getOutputStream());
+            output.writeObject(u);
+            output.flush();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        global.setCurrentEditor(null);
+        shareButton.setText("공유");
+        shareButton.setBackground(ColorPack.FADED_GREEN);
+        sharing = !sharing;
+    }
+
     private class ShareBtnListener extends MouseAdapter {
         @Override
         public void mousePressed(MouseEvent e) {
             if(sharing) {
-                System.out.println("stop");
-                future.cancel(true);
+                stop();
+                return;
             }
 
             if(!sharing) {
@@ -194,28 +246,24 @@ public class Client extends ClientFrame {
                     return;
                 }
 
-                System.out.println("start");
-                Runnable share = new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            String value = ((RTextScrollPane) mainTab.getSelectedComponent()).getTextArea().getText();
+                try {
+                    if(global.amIAuth()) {
+                        Unit u = new Unit(Unit.LOG_DATA, me.getName(), "accept_share", null);
 
-                            Unit u = new Unit(Unit.FILE_DATA, name, mainTab.getTitleAt(mainTab.getSelectedIndex()), value);
+                        output = new ObjectOutputStream(socket.getOutputStream());
+                        output.writeObject(u);
+                        output.flush();
+                    } else {
+                        Unit u = new Unit(Unit.LOG_DATA, me.getName(), "request_share", null);
 
-                            output = new ObjectOutputStream(socket.getOutputStream());
-                            output.writeObject(u);
-                            output.flush();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                        output = new ObjectOutputStream(socket.getOutputStream());
+                        output.writeObject(u);
+                        output.flush();
                     }
-                };
-
-                future = service.scheduleAtFixedRate(share, 0, 300, TimeUnit.MILLISECONDS);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
-
-            sharing = !sharing;
         }
     }
 }

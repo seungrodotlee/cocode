@@ -27,13 +27,13 @@ public class ChatLogPanel extends JSplitPane {
         chatPanel = new ChatPanel();
         logPanel.getToggler().addActionListener(new ToggleListener());
         chatPanel.getToggler().addActionListener(new ToggleListener());
+
         setTopComponent(logPanel);
         setBottomComponent(chatPanel);
         setDividerLocation(0.5);
         setDividerSize(0);
         setResizeWeight(0.5);
         setBackground(ColorPack.BG);
-        //setPreferredSize(new Dimension(320, 1));
     }
 
     private class ToggleListener implements ActionListener {

@@ -16,7 +16,6 @@ import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 
 public class ChatPanel extends JPanel {
-    private int count = 0;
     private GlobalUtility global;
     private JButton titleBar;
     private JScrollPane mainPane;
@@ -27,6 +26,7 @@ public class ChatPanel extends JPanel {
 
     public ChatPanel() {
         global = GlobalUtility.getInstance();
+
         titleBar = new JButton("채팅", new SidebarIcon("keyboard_arrow_down", Color.WHITE).imageIcon());
         mainPane = new JScrollPane();
         chatPane = new JTextArea();

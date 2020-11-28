@@ -29,7 +29,7 @@ public class SidebarPopup extends JPopupMenu {
         JMenuItem item = new JMenuItem(name);
         add(item);
         items.add(item);
-        item.addActionListener(new listener());
+        item.addActionListener(new Listener());
     }
 
     public void show(Component comp, IconNode node, int x, int y) {
@@ -39,7 +39,7 @@ public class SidebarPopup extends JPopupMenu {
         parent = node;
     }
 
-    class listener implements ActionListener {
+    class Listener implements ActionListener {
         String selected;
         DefaultTreeModel model;
         TreePath selectionPath;

@@ -13,12 +13,16 @@ import java.net.NetworkInterface;
 import java.util.Enumeration;
 import java.util.regex.Pattern;
 
+/*
+    프로그램의 시작점.
+    로그인하여 서버를 생성하거나, 방을 배정하는 역할을 한다.
+    방을 배정할 때 사용하는 키는 방장의 IP주소를 암호화한 값이다.
+ */
 public class Login extends ClientFrame {
     public static final int NEW_ROOM = 0;
     public static final int JOIN_ROOM = 1;
 
     private Login me;
-
     private JPanel inputPane;
     private JLabel nameLabel;
     private JLabel roomLabel;
@@ -43,18 +47,27 @@ public class Login extends ClientFrame {
         nameInput = new JTextField();
         roomInput = new JTextField();
 
-        createRoomBtn.addActionListener(new SelectRoomListener());
-        joinRoomBtn.addActionListener(new SelectRoomListener());
-        submitBtn.addActionListener(new SelectRoomListener());
-
         nameLabel.setHorizontalAlignment(JLabel.LEFT);
         roomLabel.setHorizontalAlignment(JLabel.LEFT);
         errorLabel.setFont(errorLabel.getFont().deriveFont(10f));
         errorLabel.setForeground(ColorPack.BG);
 
-        joinRoomBtn.setForeground(Color.WHITE);
         createRoomBtn.setForeground(new Color(149,157,203));
+        joinRoomBtn.setForeground(Color.WHITE);
 
+        createRoomBtn.addActionListener(new SelectRoomListener());
+        joinRoomBtn.addActionListener(new SelectRoomListener());
+        submitBtn.addActionListener(new SelectRoomListener());
+
+        locateElements();
+        setContentPane(inputPane);
+        setPreferredSize(new Dimension(800, 600));
+        setTitle("Login");
+        ready();
+        setVisible(true);
+    }
+
+    public void locateElements() {
         inputPaneCells = new GridBagConstraints[8];
         for(int i = 0; i < inputPaneCells.length; i++) {
             inputPaneCells[i] = new GridBagConstraints();
@@ -99,97 +112,6 @@ public class Login extends ClientFrame {
         inputPane.add(joinRoomBtn, inputPaneCells[5]);
         inputPane.add(submitBtn, inputPaneCells[6]);
         inputPane.add(errorLabel, inputPaneCells[7]);
-
-        setContentPane(inputPane);
-        setPreferredSize(new Dimension(800, 600));
-        setTitle("Login");
-        ready();
-        setVisible(true);
-    }
-
-    class SelectRoomListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            JButton src = (JButton) e.getSource();
-
-            if(src == createRoomBtn) {
-                roomType = NEW_ROOM;
-                createRoomBtn.setForeground(Color.WHITE);
-                joinRoomBtn.setForeground(new Color(149,157,203));
-                roomInput.setEnabled(false);
-                roomLabel.setForeground(new Color(105, 110, 135));
-                System.out.println(roomLabel.getForeground());
-            }
-
-            if(src == joinRoomBtn) {
-                roomType = JOIN_ROOM;
-                joinRoomBtn.setForeground(Color.WHITE);
-                createRoomBtn.setForeground(new Color(149,157,203));
-                roomLabel.setText("방 코드");
-                roomLabel.setForeground(new Color(166, 172, 205));
-                roomInput.setEnabled(true);
-            }
-
-            if(src == submitBtn) {
-                String name = nameInput.getText();
-                String room = roomInput.getText();
-
-                if(name.equals("")) {
-                    name = "익명의 개발자";
-                }
-
-                if(roomType == JOIN_ROOM && room.equals("")) {
-                    setErrorMsg("어디에 입장해야 하나요?");
-                    revalidate();
-                    return;
-                }
-
-                errorLabel.setForeground(new Color(41, 45, 62));
-
-                if(roomType == NEW_ROOM) {
-                    Runnable r = new Runnable() {
-                        @Override
-                        public void run() {
-                            new Server();
-                        }
-                    };
-
-                    Thread t = new Thread(r);
-                    t.start();
-
-                    try {
-                        String ipReg = "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
-                                "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
-                                "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
-                                "([01]?\\d\\d?|2[0-4]\\d|25[0-5])$";
-                        String ip = null;
-                        System.out.println("Host addr: " + InetAddress.getLocalHost().getHostAddress());  // often returns "127.0.0.1"
-                        Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
-
-                        while (n.hasMoreElements()) {
-                            NetworkInterface net = n.nextElement();
-                            Enumeration<InetAddress> a = net.getInetAddresses();
-                            while (a.hasMoreElements()) {
-                                InetAddress addr = a.nextElement();
-                                String host = addr.getHostAddress();
-                                System.out.println("  " + addr.getHostAddress() + ", pattern match : " + Pattern.matches(ipReg, host));
-
-                                if(Pattern.matches(ipReg, host) && !host.equals("127.0.0.1")) {
-                                    System.out.println("ip = " + addr.getHostAddress());
-                                    ip = host;
-                                }
-                            }
-                        }
-
-                        room = new KeyUtil().encrypt(ip);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                }
-
-                new Client(name, room, me);
-            }
-        }
     }
 
     public void setErrorMsg(String msg) {
@@ -207,6 +129,87 @@ public class Login extends ClientFrame {
         }
 
         return null;
+    }
+
+    class SelectRoomListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            JButton src = (JButton) e.getSource();
+
+            if(src == createRoomBtn) {
+                roomType = NEW_ROOM;
+                createRoomBtn.setForeground(Color.WHITE);
+                joinRoomBtn.setForeground(new Color(149,157,203));
+                roomLabel.setForeground(new Color(105, 110, 135));
+                roomInput.setEnabled(false);
+            }
+
+            if(src == joinRoomBtn) {
+                roomType = JOIN_ROOM;
+                joinRoomBtn.setForeground(Color.WHITE);
+                createRoomBtn.setForeground(new Color(149,157,203));
+                roomLabel.setForeground(new Color(166, 172, 205));
+                roomLabel.setText("방 코드");
+                roomInput.setEnabled(true);
+            }
+
+            if(src == submitBtn) {
+                String name = nameInput.getText();
+                String room = roomInput.getText();
+
+                if(name.equals("")) {
+                    name = "익명의 개발자";
+                }
+
+                if(roomType == JOIN_ROOM && room.equals("")) {
+                    setErrorMsg("어디에 입장해야 하나요?");
+                    revalidate();
+                    return;
+                }
+
+                errorLabel.setForeground(ColorPack.BG);
+
+                if(roomType == NEW_ROOM) {
+                    Runnable r = new Runnable() {
+                        @Override
+                        public void run() {
+                            new Server();
+                        }
+                    };
+
+                    Thread t = new Thread(r);
+                    t.start();
+
+                    try {
+                        Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
+                        String ipReg = "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
+                                "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
+                                "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
+                                "([01]?\\d\\d?|2[0-4]\\d|25[0-5])$";
+                        String ip = null;
+
+                        while (n.hasMoreElements()) {
+                            NetworkInterface net = n.nextElement();
+                            Enumeration<InetAddress> a = net.getInetAddresses();
+                            while (a.hasMoreElements()) {
+                                InetAddress addr = a.nextElement();
+                                String host = addr.getHostAddress();
+
+                                if(Pattern.matches(ipReg, host) && !host.equals("127.0.0.1")) {
+                                    ip = host;
+                                }
+                            }
+                        }
+
+                        room = KeyUtil.encrypt(ip);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+
+                new Client(name, room, me);
+            }
+        }
     }
 
     public static void main(String[] args) {

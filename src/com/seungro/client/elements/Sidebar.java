@@ -106,6 +106,10 @@ public class Sidebar extends JPanel {
 
             if(selected != null) {
                 if (SwingUtilities.isRightMouseButton(e)) {
+                    if(!global.amIAuth()) {
+                        return;
+                    }
+
                     int nodeType = selected.getNodeType();
                     if(nodeType == IconNode.FOLDER_NODE) {
                         if(selected == root) {

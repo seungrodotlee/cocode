@@ -24,14 +24,11 @@ public class UserListPanel extends JPanel {
 
     public void addUser(User u) {
         int order = global.getUserMap().size();
-//        if(order == 0) {
-//            u.setAuth(true);
-//        }
-
         UserButton userButton = new UserButton(u);
         u.setBtn(userButton);
         global.addUser(u);
 
+        con.anchor = GridBagConstraints.NORTHWEST;
         con.gridx = 0;
         con.gridy = order;
         grid.setConstraints(userButton, con);
