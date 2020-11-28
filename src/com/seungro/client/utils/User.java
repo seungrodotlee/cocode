@@ -1,6 +1,6 @@
 package com.seungro.client.utils;
 
-import com.seungro.client.elements.UserButton;
+import com.seungro.client.components.UserButton;
 
 public class User {
     private String name;

@@ -1,5 +1,6 @@
 package com.seungro.server.utils;
 
+import java.io.Serializable;
 import java.net.Socket;
 
 public class ClientData {

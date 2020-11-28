@@ -1,4 +1,4 @@
-package com.seungro.client.elements;
+package com.seungro.client.components;
 
 import com.seungro.client.utils.ColorPack;
 import com.seungro.client.utils.GlobalUtility;
@@ -11,7 +11,10 @@ public class UserButton extends JButton {
     private GlobalUtility global;
     private Color originColor = Color.WHITE;
     private Color circleColor;
+    private User u;
+
     public UserButton(User u) {
+        this.u = u;
         global = GlobalUtility.getInstance();
 
         if(u.isAuth()) {
@@ -20,7 +23,12 @@ public class UserButton extends JButton {
 
         circleColor = originColor;
 
-        setText("   " + u.getName() + "      ");
+        if(u.getName().equals(global.getUserName())) {
+            setText("   나 (" + u.getName() + ")      ");
+        } else {
+            setText("   " + u.getName() + "      ");
+        }
+
         setHorizontalAlignment(SwingConstants.RIGHT);
         setPreferredSize(new Dimension(1, 36));
         setForeground(Color.WHITE);

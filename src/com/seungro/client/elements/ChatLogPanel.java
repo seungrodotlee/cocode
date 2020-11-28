@@ -33,8 +33,7 @@ public class ChatLogPanel extends JSplitPane {
         setDividerSize(0);
         setResizeWeight(0.5);
         setBackground(ColorPack.BG);
-        setBorder(BorderFactory.createMatteBorder(0, 1, 0, 1, ColorPack.BG_DARK));
-        setPreferredSize(new Dimension(320, 1));
+        //setPreferredSize(new Dimension(320, 1));
     }
 
     private class ToggleListener implements ActionListener {

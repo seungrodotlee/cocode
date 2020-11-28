@@ -1,13 +1,11 @@
 package com.seungro.client.elements;
 
+import com.seungro.client.components.UserButton;
 import com.seungro.client.utils.GlobalUtility;
 import com.seungro.client.utils.User;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.HashMap;
 
 public class UserListPanel extends JPanel {
     private GlobalUtility global;
@@ -16,6 +14,7 @@ public class UserListPanel extends JPanel {
 
     public UserListPanel() {
         global = GlobalUtility.getInstance();
+        global.setUserListPanel(this);
         grid = new GridBagLayout();
         con = new GridBagConstraints();
         con.fill = GridBagConstraints.BOTH;
@@ -25,9 +24,9 @@ public class UserListPanel extends JPanel {
 
     public void addUser(User u) {
         int order = global.getUserMap().size();
-        if(order == 0) {
-            u.setAuth(true);
-        }
+//        if(order == 0) {
+//            u.setAuth(true);
+//        }
 
         UserButton userButton = new UserButton(u);
         u.setBtn(userButton);

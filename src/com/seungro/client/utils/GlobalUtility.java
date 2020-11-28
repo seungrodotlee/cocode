@@ -2,7 +2,9 @@ package com.seungro.client.utils;
 
 import com.seungro.client.components.CodeArea;
 import com.seungro.client.components.IconNode;
-import com.seungro.client.elements.UserButton;
+import com.seungro.client.components.UserButton;
+import com.seungro.client.elements.ChatPanel;
+import com.seungro.client.elements.UserListPanel;
 import com.seungro.data.Unit;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 
@@ -10,9 +12,7 @@ import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.net.Socket;
 import java.util.*;
 
@@ -20,22 +20,23 @@ import java.util.*;
 public class GlobalUtility {
     private static GlobalUtility instance = new GlobalUtility();
 
-    private JTabbedPane mainTabPane;
-    private String userName;
     private ArrayList<IconNode> nodes = new ArrayList<IconNode>();
     private HashMap<String, CodeArea> codeAreaMap = new HashMap<String, CodeArea>();
     private HashMap<UUID, IconNode> folderMap = new HashMap<UUID, IconNode>();
     private HashMap<IconNode, String> tabMap = new HashMap<IconNode, String>();
     private HashMap<String, User> userMap = new HashMap<String, User>();
-    private User currentEditor = null;
-    private Socket socket;
+
+    private JTabbedPane mainTabPane;
+    private ChatPanel chatPane;
+    private UserListPanel userListPanel;
     private JTree tree;
     private IconNode treeRoot;
-
+    private User currentEditor = null;
+    private Socket socket;
+    private String userName;
     private String[] fe = {
             "java", "javascript", "html", "css", "c", "cpp", "json", "jsp", "php", "xml"
     };
-
     ArrayList<String> fileExts = new ArrayList<>(Arrays.asList(fe));
 
     private GlobalUtility() {}
@@ -50,6 +51,22 @@ public class GlobalUtility {
 
     public JTabbedPane getMainTabPane() {
         return mainTabPane;
+    }
+
+    public ChatPanel getChatPane() {
+        return chatPane;
+    }
+
+    public void setChatPane(ChatPanel chatPane) {
+        this.chatPane = chatPane;
+    }
+
+    public UserListPanel getUserListPanel() {
+        return userListPanel;
+    }
+
+    public void setUserListPanel(UserListPanel userListPanel) {
+        this.userListPanel = userListPanel;
     }
 
     public String getUserName() {

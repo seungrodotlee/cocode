@@ -11,6 +11,7 @@ public class Server {
     private ServerSocket serverSocket;
     private Socket socket;
     ArrayList<ClientData> members = new ArrayList<ClientData>();
+    private String auth = "";
 
     public Server() {
         try {
@@ -20,7 +21,7 @@ public class Server {
             while(true) {
                 socket = serverSocket.accept();
                 
-                ServerThread thread = new ServerThread(socket, members);
+                ServerThread thread = new ServerThread(socket, members, auth);
                 thread.start();
             }
         } catch (Exception e) {

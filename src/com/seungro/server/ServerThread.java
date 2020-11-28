@@ -14,12 +14,14 @@ public class ServerThread extends Thread {
     private ObjectInputStream input;
     private ObjectOutputStream output;
     private String id;
+    private String auth;
     private ClientData me;
     private int type;
 
-    public ServerThread(Socket socket, ArrayList<ClientData> members) {
+    public ServerThread(Socket socket, ArrayList<ClientData> members, String auth) {
         this.socket = socket;
         this.members = members;
+        this.auth = auth;
     }
 
     public void run() {
@@ -45,7 +47,7 @@ public class ServerThread extends Thread {
                     if (receive[0].equals("new")) {
                         synchronized (members) {
                             members.add(me);
-                            receive(new Unit(Unit.LOG_DATA, null, null, roomKey));
+                            receive(new Unit(Unit.LOG_DATA, null, roomKey, null));
                         }
                     }
 
@@ -62,8 +64,15 @@ public class ServerThread extends Thread {
 
                             members.add(me);
 
-                            receive(new Unit(Unit.LOG_DATA, null, null, "success"));
-                            broadcast(new Unit(Unit.LOG_DATA, null, null, "newmember/" + me.getName()));
+                            ArrayList<String> mems  = new ArrayList<String>();
+
+                            for(ClientData member : members) {
+                                mems.add(member.getName());
+                            }
+
+                            System.out.println("[SERVER] auth = " + members.get(0).getName());
+                            receive(new Unit(Unit.LOG_DATA, members.get(0).getName(), "success", mems));
+                            broadcast(new Unit(Unit.LOG_DATA, me.getName(), "join", mems));
                         }
                     }
                 } else {
@@ -101,8 +110,9 @@ public class ServerThread extends Thread {
     private void broadcast(Unit u) {
         try {
             for (ClientData member : members) {
+                System.out.println("[SERVER] broadcast to " + member.getName());
                 if (member.getSocket().equals(me.getSocket())) {
-                    System.out.println("it's me");
+                    System.out.println("[SERVER] it's me");
                     continue;
                 }
 

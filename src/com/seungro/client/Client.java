@@ -8,6 +8,8 @@ import java.awt.event.MouseEvent;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -53,7 +55,66 @@ public class Client extends ClientFrame {
         global = GlobalUtility.getInstance();
         global.setUserName(name);
 
+        System.out.println("client on");
+
+        JPanel welcomePanel = new JPanel();
+        JPanel tabWrap = new JPanel();
+        welcomePanel.add(new JLabel("welcome"));
+
+        mainPane = new JPanel(new BorderLayout());
+
+        mainTab = new JTabbedPane();
+        tabWrap.add(mainTab);
+        tabWrap.setBackground(ColorPack.BG);
+        global.setMainTabPane(mainTab);
+
+        side = new Sidebar();
+
+        ChatLogPanel chatLogPanel = new ChatLogPanel();
+        JPanel listWrap = new JPanel();
+        UserListPanel listPanel = new UserListPanel();
+
+        global.setUserListPanel(listPanel);
+
+//        listPanel.addUser(new User("이승로"));
+//        listPanel.addUser(new User("김승로"));
+//        listPanel.addUser(new User("박승로"));
+
+        listWrap.setLayout(new BorderLayout());
+        listWrap.add(listPanel, BorderLayout.PAGE_START);
+
+        //GlobalUtility.getInstance().setCurrentEditor("박승로");
+
+        editorPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, side, tabWrap);
+        centerPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, editorPane, chatLogPanel);
+        wholePane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, centerPane, listWrap);
+        centerPane.setResizeWeight(1);
+        centerPane.setDividerSize(5);
+        wholePane.setDividerSize(5);
+        wholePane.setResizeWeight(1);
+
+        BasicSplitPaneDivider divider = (BasicSplitPaneDivider) wholePane.getComponent(2);
+        divider.setBackground(ColorPack.BG_DARK);
+        //divider.setBorder(null);
+
+        bottomBar = new JPanel(new FlowLayout());
+        shareButton = new JButton("공유");
+        shareButton.addMouseListener(new ShareBtnListener());
+        bottomBar.add(shareButton);
+        bottomBar.setBorder(BorderFactory.createMatteBorder(5, 0, 0, 0, ColorPack.BG_DARK));
+
+        mainPane.add(wholePane);
+        mainPane.add(bottomBar, BorderLayout.PAGE_END);
+
+        setContentPane(mainPane);
+        setTitle("Text Editor Demo");
+        ready();
+        setVisible(true);
+
+        centerPane.setDividerLocation(centerPane.getWidth() - 320);
+
         try {
+            User me = new User(name);
             KeyUtil keyUtil = new KeyUtil();
             String ip = keyUtil.decrypt(room);
             System.out.println("room ip = " + ip);
@@ -75,10 +136,31 @@ public class Client extends ClientFrame {
 
 
             if(receive.getType() == Unit.LOG_DATA) {
-                System.out.println("log = " + receive.getValue() + ", key = " + room);
+                System.out.println("log = " + receive.getTitle() + ", key = " + room);
 
-                String log = (String) receive.getValue();
+                String log = (String) receive.getTitle();
                 if(log.equals("success") || log.equals(room)) {
+                    UserListPanel userListPanel = global.getUserListPanel();
+
+                    if(login.getRoomType().equals("new")) {
+                        me.setAuth(true);
+                        userListPanel.addUser(me);
+                    } else {
+                        ArrayList<String> members = (ArrayList<String>) receive.getValue();
+
+                        System.out.println("auth = " + receive.getUserName());
+                        for(String member : members) {
+                                User u = new User(member);
+                                if(member.equals(receive.getUserName())) {
+                                    u.setAuth(true);
+                                }
+                                userListPanel.addUser(u);
+                                userListPanel.revalidate();
+                        }
+                    }
+
+
+
                     login.dispose();
                     System.out.println(log);
 
@@ -93,59 +175,6 @@ public class Client extends ClientFrame {
 
             login.setErrorMsg("코드를 다시 확인해주세요");
         }
-
-        System.out.println("client on");
-
-        JPanel welcomePanel = new JPanel();
-        JPanel tabWrap = new JPanel();
-        welcomePanel.add(new JLabel("welcome"));
-
-        mainPane = new JPanel(new BorderLayout());
-
-        mainTab = new JTabbedPane();
-        tabWrap.add(mainTab);
-        tabWrap.setBackground(ColorPack.BG);
-        global.setMainTabPane(mainTab);
-
-        side = new Sidebar();
-
-        ChatLogPanel chatLogPanel = new ChatLogPanel();
-        JPanel listWrap = new JPanel();
-        UserListPanel listPanel = new UserListPanel();
-
-        listPanel.addUser(new User("이승로"));
-        listPanel.addUser(new User("김승로"));
-        listPanel.addUser(new User("박승로"));
-
-        listWrap.setLayout(new BorderLayout());
-        listWrap.add(listPanel, BorderLayout.PAGE_START);
-        listWrap.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, ColorPack.BG_DARK));
-
-        GlobalUtility.getInstance().setCurrentEditor("박승로");
-
-        editorPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, side, tabWrap);
-        centerPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, editorPane, chatLogPanel);
-        wholePane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, centerPane, listWrap);
-        centerPane.setResizeWeight(1);
-        wholePane.setResizeWeight(1);
-
-        BasicSplitPaneDivider divider = (BasicSplitPaneDivider) wholePane.getComponent(2);
-        divider.setBackground(ColorPack.BG_DARK);
-        //divider.setBorder(null);
-
-        bottomBar = new JPanel(new FlowLayout());
-        shareButton = new JButton("공유");
-        shareButton.addMouseListener(new ShareBtnListener());
-        bottomBar.add(shareButton);
-        bottomBar.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, ColorPack.BG_DARK));
-
-        mainPane.add(wholePane);
-        mainPane.add(bottomBar, BorderLayout.PAGE_END);
-
-        setContentPane(mainPane);
-        setTitle("Text Editor Demo");
-        ready();
-        setVisible(true);
     }
 
     private class ShareBtnListener extends MouseAdapter {
