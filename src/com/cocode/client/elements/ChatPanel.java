@@ -9,6 +9,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 public class ChatPanel extends JPanel {
     private GlobalUtility global;
@@ -40,6 +42,7 @@ public class ChatPanel extends JPanel {
         mainPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         mainPane.setViewportView(chatPane);
         mainPane.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, ColorPack.BG_DARK));
+        messageInput.addKeyListener(new InputKeyListener());
         sendPane.setLayout(new BorderLayout());
         sendPane.add(messageInput, BorderLayout.CENTER);
         sendPane.add(sendBtn, BorderLayout.LINE_END);
@@ -73,8 +76,27 @@ public class ChatPanel extends JPanel {
     private class SendBtnListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            sendMessage(messageInput.getText());
+            String msg = messageInput.getText();
+            if(msg.equals("")) {
+                return;
+            }
+
+            sendMessage(msg);
             messageInput.setText("");
+        }
+    }
+
+    public class InputKeyListener extends KeyAdapter {
+        @Override
+        public void keyTyped(KeyEvent e) {
+            if(e.getKeyChar() == '\n') {
+                String msg = messageInput.getText();
+                if(!msg.equals("\n")) {
+                    sendMessage(msg);
+                }
+
+                messageInput.setText("");
+            }
         }
     }
 }
