@@ -119,8 +119,6 @@ public class ClientThread extends Thread {
 
                 if(type == Unit.CHAT_DATA) {
                     ChatPanel chatPane = global.getChatPane();
-                    String val = receive.getUserName() + ": " + receive.getValue();
-                    System.out.println("[CLIENT] receive msg: " + val);
                     chatPane.appendMessage(receive.getUserName(), (String) receive.getValue());
                     chatPane.revalidate();
                 }
