@@ -8,6 +8,7 @@ public class Unit implements Serializable {
     public static final int CHAT_DATA = 2;
     public static final int ENTER_DATA = 3;
     public static final int FILE_TREE_DATA = 4;
+    public static final int VOICE_DATA = 5;
 
     private int type;
     private String userName;

@@ -1,5 +1,6 @@
 package com.cocode.server;
 
+import com.cocode.client.elements.VoicePanel;
 import com.cocode.server.utils.ClientData;
 
 import java.net.ServerSocket;

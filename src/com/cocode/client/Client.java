@@ -1,5 +1,6 @@
 package com.cocode.client;
 
+import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -18,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 import com.cocode.client.elements.ChatLogPanel;
 import com.cocode.client.elements.Sidebar;
 import com.cocode.client.elements.UserListPanel;
+import com.cocode.client.elements.VoicePanel;
 import com.cocode.client.utils.ColorPack;
 import com.cocode.client.utils.GlobalUtility;
 import com.cocode.client.utils.KeyUtil;
@@ -48,9 +50,14 @@ public class Client extends ClientFrame {
     private JPanel rightPanel;
     private JPanel listWrap;
     private UserListPanel listPanel;
+    private VoicePanel voicePanel;
     private Sidebar side;
     private JPanel buttonWrap;
     private JButton shareButton;
+
+    private SourceDataLine line;
+    private AudioFormat format;
+    private DataLine.Info info;
 
     private String name;
     private String room;
@@ -64,6 +71,8 @@ public class Client extends ClientFrame {
         global = GlobalUtility.getInstance();
         global.setUserName(name);
 
+        connectAudio();
+
         side = new Sidebar();
         mainPane = new JPanel(new BorderLayout());
         tabWrap = new JPanel();
@@ -72,6 +81,7 @@ public class Client extends ClientFrame {
         rightPanel = new JPanel();
         listWrap = new JPanel();
         listPanel = new UserListPanel();
+        voicePanel = new VoicePanel();
         editorPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, side, tabWrap);
         centerPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, editorPane, chatLogPanel);
         wholePane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, centerPane, rightPanel);
@@ -92,6 +102,7 @@ public class Client extends ClientFrame {
         rightPanel.setLayout(new BorderLayout());
         rightPanel.add(buttonWrap, BorderLayout.PAGE_START);
         rightPanel.add(listWrap, BorderLayout.CENTER);
+        rightPanel.add(voicePanel, BorderLayout.PAGE_END);
         centerPane.setResizeWeight(1);
         centerPane.setDividerSize(5);
         wholePane.setDividerSize(5);
@@ -122,6 +133,22 @@ public class Client extends ClientFrame {
         t.schedule(r, 100);
     }
 
+    private void connectAudio() {
+        format = global.getAudioFormat();
+        info = new DataLine.Info(SourceDataLine.class, format);
+
+        try {
+            line = (SourceDataLine)
+                    AudioSystem.getLine(info);
+            line.open(format);
+            line.start();
+
+            global.setLine(line);
+        } catch (LineUnavailableException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void connectToServer() {
         try {
             me = new User(name);
@@ -142,7 +169,6 @@ public class Client extends ClientFrame {
 
             input = new ObjectInputStream(socket.getInputStream());
             Unit receive = (Unit) input.readObject();
-
 
             if(receive.getType() == Unit.LOG_DATA) {
                 System.out.println("log = " + receive.getTitle() + ", key = " + room);

@@ -9,6 +9,8 @@ import com.cocode.client.elements.UserListPanel;
 import com.cocode.data.Unit;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.SourceDataLine;
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
@@ -28,7 +30,9 @@ public class GlobalUtility {
     private IconNode treeRoot;
     private User currentEditor = null;
     private Socket socket;
+    private SourceDataLine line;
     private Boolean auth = false;
+    private Boolean listening = true;
     private String userName;
     private String[] fe = {
             "java", "javascript", "html", "css", "c", "cpp", "json", "jsp", "php", "xml"
@@ -42,6 +46,32 @@ public class GlobalUtility {
 
     public static GlobalUtility getInstance() {
         return instance;
+    }
+
+    public SourceDataLine getLine() {
+        return line;
+    }
+
+    public void setLine(SourceDataLine line) {
+        this.line = line;
+    }
+
+    public AudioFormat getAudioFormat() {
+        float sampleRate = 8000;
+        int sampleSizeInBits = 16;
+        int channels = 1;
+        boolean signed = true;
+        boolean bigEndian = true;
+        return new AudioFormat(sampleRate,
+                sampleSizeInBits, channels, signed, bigEndian);
+    }
+
+    public Boolean isListening() {
+        return listening;
+    }
+
+    public void setListening(Boolean listening) {
+        this.listening = listening;
     }
 
     public void setMainTabPane(JTabbedPane mainTabPane) {
@@ -108,6 +138,10 @@ public class GlobalUtility {
 
     public void setSocket(Socket socket) {
         this.socket = socket;
+    }
+
+    public Socket getSocket() {
+        return socket;
     }
 
     public HashMap<String, User> getUserMap() {

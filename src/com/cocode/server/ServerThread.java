@@ -3,6 +3,7 @@ package com.cocode.server;
 import com.cocode.data.Unit;
 import com.cocode.server.utils.ClientData;
 
+import javax.sound.sampled.AudioFormat;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -84,6 +85,10 @@ public class ServerThread extends Thread {
                         receive(u);
                     }
                 } else {
+                    System.out.println("[SERVER] get");
+                    if(type == Unit.VOICE_DATA) {
+                        receive(u);
+                    }
                     broadcast(u);
                 }
             } catch (Exception e) {
@@ -103,6 +108,16 @@ public class ServerThread extends Thread {
                 break;
             }
         }
+    }
+
+    private AudioFormat getFormat() {
+        float sampleRate = 8000;
+        int sampleSizeInBits = 8;
+        int channels = 1;
+        boolean signed = true;
+        boolean bigEndian = true;
+        return new AudioFormat(sampleRate,
+                sampleSizeInBits, channels, signed, bigEndian);
     }
 
     private void receive(Unit u) {

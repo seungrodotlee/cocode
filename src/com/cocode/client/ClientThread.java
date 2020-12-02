@@ -9,7 +9,10 @@ import com.cocode.client.utils.GlobalUtility;
 import com.cocode.client.utils.User;
 import com.cocode.data.Unit;
 
+import javax.sound.sampled.*;
 import javax.swing.*;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -22,12 +25,16 @@ public class ClientThread extends Thread {
     private Socket socket;
     private ObjectInputStream input;
     private GlobalUtility global;
+    private SourceDataLine line;
+    private AudioFormat format;
 
     public ClientThread(Client client, Socket socket, ObjectInputStream input) {
         global = GlobalUtility.getInstance();
         this.client = client;
         this.socket = socket;
         this.input = input;
+        line = global.getLine();
+        format = global.getAudioFormat();
     }
 
     @Override
@@ -137,8 +144,38 @@ public class ClientThread extends Thread {
                         global.updateFileNameByReceive(receive.getValue());
                     }
                 }
+
+                if(type == Unit.VOICE_DATA) {
+                    if(!global.isListening()) {
+                        continue;
+                    }
+
+                        System.out.println("[VOICE] in");
+                        byte audio[] = (byte[]) receive.getValue();
+
+
+                    int bufferSize = (int)format.getSampleRate()
+                            * format.getFrameSize();
+
+                        InputStream input =
+                                new ByteArrayInputStream(audio);
+                        final AudioInputStream ais =
+                                new AudioInputStream(input, format,
+                                        audio.length / format.getFrameSize());
+
+                        byte buffer[] = new byte[bufferSize];
+                        int count;
+                        while ((count = ais.read(
+                                buffer, 0, buffer.length)) != -1) {
+                            if (count > 0) {
+                                line.write(buffer, 0, count);
+                            }
+                        }
+                }
             } catch (Exception e) {
                 e.printStackTrace();
+                line.drain();
+                line.close();
             }
         }
     }
